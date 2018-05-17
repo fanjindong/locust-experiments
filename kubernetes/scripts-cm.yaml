@@ -32,103 +32,105 @@ data:
                 # 默认值，防止取不到回传数据，影响接下来的接口
                 cardId = '9030400001313871'
                 productId = '1503233311'
-
-            # main_info
-            with self.client.get(
-                    "/api/common/v1/main/info?",
-                    catch_response=True
-            )as response:
-                if response.json()['code'] != 0:
-                    response.failure("main_info接口，code不为0:{}".format(response.json()))
-            # 绑定用户
-            with self.client.get(
-                    "/api/bindUser/v1?customerUserPhone={}&customerUserId={}&categoryCode=jiayouka".format(data['userId'], data['phone']),
-                    catch_response=True
-            )as response:
-                if response.json()['code'] != 0:
-                    response.failure("main_info接口，code不为0:{}".format(response.json()))
-            # 无油卡数据则新建加油卡
-            with self.client.get(
+            try:
+                # main_info
+                with self.client.get(
+                        "/api/common/v1/main/info?",
+                        catch_response=True
+                )as response:
+                    if response.json()['code'] != 0:
+                        response.failure("main_info接口，code不为0:{}".format(response.json()))
+                # 绑定用户
+                with self.client.get(
+                        "/api/bindUser/v1?customerUserPhone={}&customerUserId={}&categoryCode=jiayouka".format(data['userId'], data['phone']),
+                        catch_response=True
+                )as response:
+                    if response.json()['code'] != 0:
+                        response.failure("main_info接口，code不为0:{}".format(response.json()))
+                # 无油卡数据则新建加油卡
+                with self.client.get(
+                        "/api/jiayouka/v1/{}/cards/{}?".format(r, data['userId']),
+                        catch_response=True
+                )as response:
+                    if response.json()["code"] != 0:
+                        response.failure("加油卡列表接口，code不为0:{}".format(response.json()))
+                    else:
+                        if len(response.json()['data']) < 1:
+                            self.client.post(
+                                "/api/jiayouka/v1/cards", {
+                                    "id": "",
+                                    "cardId": cardId,
+                                    "userName": "",
+                                    "credentialNum": "",
+                                    "phone": data['phone'],
+                                    "showBasisNameList": ["autohome", "pingan-one", "localhost"],
+                                    "isShowBasis": False,
+                                    "customerUserId": data['userId'],
+                                    "credentialType": "身份证",
+                                    "categoryId": "{}".format(r)
+                                }
+                            )
+                # 获取可用服务商
+                with self.client.get(
+                        "/api/jiayouka/v1/list",
+                        catch_response=True
+                )as response:
+                    if re.search(category, response.text) is None:
+                        response.failure("未回传{}" .format(category))
+                # 获取用户加油卡列表
+                with self.client.get(
                     "/api/jiayouka/v1/{}/cards/{}?".format(r, data['userId']),
-                    catch_response=True
-            )as response:
-                if response.json()["code"] != 0:
-                    response.failure("加油卡列表接口，code不为0:{}".format(response.json()))
-                else:
-                    if len(response.json()['data']) < 1:
-                        self.client.post(
-                            "/api/jiayouka/v1/cards", {
-                                "id": "",
-                                "cardId": cardId,
-                                "userName": "",
-                                "credentialNum": "",
-                                "phone": data['phone'],
-                                "showBasisNameList": ["autohome", "pingan-one", "localhost"],
-                                "isShowBasis": False,
-                                "customerUserId": data['userId'],
-                                "credentialType": "身份证",
-                                "categoryId": "{}".format(r)
-                            }
-                        )
-            # 获取可用服务商
-            with self.client.get(
-                    "/api/jiayouka/v1/list",
-                    catch_response=True
-            )as response:
-                if re.search(category, response.text) is None:
-                    response.failure("未回传{}" .format(category))
-            # 获取用户加油卡列表
-            with self.client.get(
-                "/api/jiayouka/v1/{}/cards/{}?".format(r, data['userId']),
-                    catch_response=True
-            )as response:
-                if len(response.json()["data"]) > 0:
-                    cardId = response.json()["data"][0]['cardId']
-                else:
-                    response.failure("未获取到用户{}加油卡数据，可能创建的时候出了问题".format(category))
+                        catch_response=True
+                )as response:
+                    if len(response.json()["data"]) > 0:
+                        cardId = response.json()["data"][0]['cardId']
+                    else:
+                        response.failure("未获取到用户{}加油卡数据，可能创建的时候出了问题".format(category))
 
-            # 获取可充值套餐
-            with self.client.get(
-                "/api/jiayouka/v1/{}/payments?".format(r),
-                    catch_response=True
-            )as response:
-                if response.json()['code'] != 0 or len(response.json()['data']) < 1:
-                    response.failure("无可用套餐:{}".format(response.json()))
-                else:
-                    productId = response.json()['data'][0]['productId']
-            # 下单
-            with self.client.post(
-                    "/api/jiayouka/v1/order", {
-                        "productId": productId,
-                        "customerUserId": data['userId'],
-                        "cardId": cardId,
-                        "categoryId": "{}".format(r),
-                        "userPhone": data['phone'],
-                        "phone": "18810528271",
-                        "userName": "测试",
-                        "couponId": "",
-                        "activityId": ""
-                    },
-                    catch_response=True
-            )as response:
-                text = response.text
-                if re.search('"id":"(.*)","name"', text) != None:
-                    id = re.search('"id":"(.*)","name"', text).group(1)
-                    print(id)
-                    # 收银台获取lite数据
-                    with self.client.get("/api/order/v1/lite/{0}?id={0}&subId=&orderType=jiayouka".format(id),
-                                        catch_response=True) as response:
-                        if response.json()['code'] != 0:
-                            response.failure("订单详情{}，code不为0:{}".format(id, response.json()))
-                    # TODO 暂缺模拟支付。如果host和其他接口不一致需要先修改self.host 然后 再改回来。
-                    # 支付成功后获取订单详情
-                    with self.client.get("/api/order/v1/jiayouka/{}/info?".format(id), catch_response=True) as response:
-                        # TODO 加了支付后可以考虑加个判断是否回传的status已经不是已下单or待支付
-                        if response.json()['code'] != 0:
-                            response.failure("订单详情{}，code不为0:{}".format(id, response.json()))
-                else:
-                    response.failure("下单接口，没有获取到生成的订单id:{}".format(text))
-                self.locust.user_data_queue.put_nowait(data)
+                # 获取可充值套餐
+                with self.client.get(
+                    "/api/jiayouka/v1/{}/payments?".format(r),
+                        catch_response=True
+                )as response:
+                    if response.json()['code'] != 0 or len(response.json()['data']) < 1:
+                        response.failure("无可用套餐:{}".format(response.json()))
+                    else:
+                        productId = response.json()['data'][0]['productId']
+                # 下单
+                with self.client.post(
+                        "/api/jiayouka/v1/order", {
+                            "productId": productId,
+                            "customerUserId": data['userId'],
+                            "cardId": cardId,
+                            "categoryId": "{}".format(r),
+                            "userPhone": data['phone'],
+                            "phone": "18810528271",
+                            "userName": "测试",
+                            "couponId": "",
+                            "activityId": ""
+                        },
+                        catch_response=True
+                )as response:
+                    text = response.text
+                    if re.search('"id":"(.*)","name"', text) != None:
+                        id = re.search('"id":"(.*)","name"', text).group(1)
+                        print(id)
+                        # 收银台获取lite数据
+                        with self.client.get("/api/order/v1/lite/{0}?id={0}&subId=&orderType=jiayouka".format(id),
+                                            catch_response=True) as response:
+                            if response.json()['code'] != 0:
+                                response.failure("订单详情{}，code不为0:{}".format(id, response.json()))
+                        # TODO 暂缺模拟支付。如果host和其他接口不一致需要先修改self.host 然后 再改回来。
+                        # 支付成功后获取订单详情
+                        with self.client.get("/api/order/v1/jiayouka/{}/info?".format(id), catch_response=True) as response:
+                            # TODO 加了支付后可以考虑加个判断是否回传的status已经不是已下单or待支付
+                            if response.json()['code'] != 0:
+                                response.failure("订单详情{}，code不为0:{}".format(id, response.json()))
+                    else:
+                        response.failure("下单接口，没有获取到生成的订单id:{}".format(text))
+                    self.locust.user_data_queue.put_nowait(data)
+            except:
+                response.failure(response.text)
 
         @task(1)
         def getOrderList(self):
