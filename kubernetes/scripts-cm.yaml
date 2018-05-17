@@ -11,7 +11,7 @@ data:
 
     class WebsiteTasks(TaskSet):
         #用户下单的流程
-        @task(8)
+        @task(1)
         def jiayoukaRecharge(self):
             try:
                 data = self.locust.user_data_queue.get()
@@ -94,7 +94,7 @@ data:
                             "/api/jiayouka/v1/{}/payments?".format(r),
                     catch_response=True
             )as response:
-                if len(response.json()['data']) < 1:
+                if response.json()['code']!=0 or len(response.json()['data']) < 1:
                     response.failure("无可用套餐")
                 else:
                     productId = response.json()['data'][0]['productId']
@@ -132,7 +132,7 @@ data:
                     response.failure("下单接口，没有获取到生成的订单id")
                 self.locust.user_data_queue.put_nowait(data)
 
-        @task(2)
+        @task(1)
         def getOrderList(self):
             #查看订单列表
             with self.client.get(
