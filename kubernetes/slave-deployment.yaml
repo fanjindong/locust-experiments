@@ -7,7 +7,7 @@ metadata:
     role: locust-slave
   name: locust-slave
 spec:
-  replicas: 2
+  replicas: 4
   selector:
     matchLabels:
       role: locust-slave

@@ -3,4 +3,4 @@ kind: ConfigMap
 metadata:
   name: locust-cm
 data:
-  ATTACKED_HOST: http://locust-master:8089
+  ATTACKED_HOST: https://dev-me.otosaas.com
