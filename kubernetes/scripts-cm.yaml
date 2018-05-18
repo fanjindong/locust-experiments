@@ -53,7 +53,7 @@ data:
                 with self.client.get(
                         "/api/jiayouka/v1/{}/cards/{}?".format(r, data['userId']),
                         catch_response=True,
-                        name="/api/jiayouka/v1/1|2/cards/userId"
+                        name="/api/jiayouka/v1/1-2/cards/userId"
                 )as response:
                     if response.json()["code"] != 0:
                         response.failure("加油卡列表接口，code不为0:{}".format(response.json()))
@@ -84,7 +84,7 @@ data:
                 with self.client.get(
                     "/api/jiayouka/v1/{}/cards/{}?".format(r, data['userId']),
                         catch_response=True
-                        name="/api/jiayouka/v1/1|2/cards/userId"
+                        name="/api/jiayouka/v1/1-2/cards/userId"
                 )as response:
                     if len(response.json()["data"]) > 0:
                         cardId = response.json()["data"][0]['cardId']
@@ -95,7 +95,7 @@ data:
                 with self.client.get(
                     "/api/jiayouka/v1/{}/payments?".format(r),
                         catch_response=True,
-                        name="/api/jiayouka/v1/1|2/payments?"
+                        name="/api/jiayouka/v1/1-2/payments?"
                 )as response:
                     if response.json()['code'] != 0 or len(response.json()['data']) < 1:
                         response.failure("无可用套餐:{}".format(response.json()))
