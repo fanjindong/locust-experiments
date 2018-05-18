@@ -16,8 +16,8 @@
                 exit(0)
 
             try:
-                response = None
                 response = self.client.get('/sm/order/fetch/{}'.format(data['orderId']),
+                                           catch_response=True,
                                            name='/sm/order/fetch/:orderId')
                 resp_json = response.json()
 
@@ -42,8 +42,7 @@
                 exit(0)
 
             try:
-                response = None
-                response = self.client.post('/sm/order/fetch_lite_list', json={'userId': data['userId'], 'appCode': 'blm'})
+                response = self.client.post('/sm/order/fetch_lite_list', json={'userId': data['userId'], 'appCode': 'blm'}, catch_response=True)
                 resp_json = response.json()
 
                 if resp_json['code'] != 0:
