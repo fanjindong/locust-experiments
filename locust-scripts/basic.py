@@ -2,6 +2,7 @@
     import re
     import random
     import queue
+    import traceback
 
     class WebsiteTasks(TaskSet):
 
@@ -24,8 +25,8 @@
 
                     self.locust.order_data_queue.put_nowait(data)
 
-            except Exception as e:
-                response.failure("errMessage:{},response:{}".format(e, response.text))
+            except:
+                response.failure("errMessage:{}, response:{}".format(traceback.format_exc(), response.text))
 
         @task(1)
         def fetchOrderList(self):
@@ -47,8 +48,8 @@
 
                 self.locust.user_data_queue.put_nowait(data)
 
-            except Exception as e:
-                response.failure("errMessage:{},response:{}".format(e, response.text))
+            except:
+                response.failure("errMessage:{}, response:{}".format(traceback.format_exc(), response.text))
 
     class WebsiteUser(HttpLocust):
         task_set = WebsiteTasks
