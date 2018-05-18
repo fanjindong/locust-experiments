@@ -132,8 +132,8 @@
                     else:
                         response.failure("下单接口，没有获取到生成的订单id:{}".format(text))
 
-            except:
-                response.failure(response.text)
+            except Exception as e:
+                response.failure(e, response.text)
 
         @task(1)
         def getOrderList(self):
