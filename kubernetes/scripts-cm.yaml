@@ -22,13 +22,13 @@ data:
                 exit(0)
 
             try:
-                response = self.client.get('/sm/order/fetch/{}'.format(data['orderId']),
-                                           catch_response=True,
-                                           name='/sm/order/fetch/:orderId')
-                resp_json = response.json()
+                with self.client.get('/sm/order/fetch/{}'.format(data['orderId']),
+                                     catch_response=True,
+                                     name='/sm/order/fetch/:orderId') as response:
+                    resp_json = response.json()
 
-                if resp_json['code'] != 0:
-                    response.failure(resp_json)
+                    if resp_json['code'] != 0:
+                        response.failure(resp_json)
 
                 self.locust.order_data_queue.put_nowait(data)
 
@@ -48,14 +48,16 @@ data:
                 exit(0)
 
             try:
-                response = self.client.post('/sm/order/fetch_lite_list', json={'userId': data['userId'], 'appCode': 'blm'}, catch_response=True)
-                resp_json = response.json()
+                with self.client.post('/sm/order/fetch_lite_list',
+                                      json={'userId': data['userId'], 'appCode': 'blm'},
+                                      catch_response=True) as response:
+                    resp_json = response.json()
 
-                if resp_json['code'] != 0:
-                    response.failure(resp_json)
+                    if resp_json['code'] != 0:
+                        response.failure(resp_json)
 
-                for item in resp_json['data']:
-                    self.locust.order_data_queue.put_nowait({"orderId": item['id']})
+                    for item in resp_json['data']:
+                        self.locust.order_data_queue.put_nowait({"orderId": item['id']})
 
                 self.locust.user_data_queue.put_nowait(data)
 
