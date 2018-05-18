@@ -47,7 +47,7 @@
                 with self.client.get(
                         "/api/jiayouka/v1/{}/cards/{}?".format(r, data['userId']),
                         catch_response=True,
-                        name="/api/jiayouka/v1/1-2/cards/userId"
+                        name="/jiayouka/v1/:categoryId/cards/:customerUserId"
                 )as response:
                     if response.json()["code"] != 0:
                         response.failure("加油卡列表接口，code不为0:{}".format(response.json()))
@@ -65,12 +65,15 @@
                                     "customerUserId": data['userId'],
                                     "credentialType": "身份证",
                                     "categoryId": "{}".format(r)
-                                }
+                                },
+                                catch_response=True,
+                                name="/jiayouka/v1/cards"
                             )
                 # 获取可用服务商
                 with self.client.get(
                         "/api/jiayouka/v1/list",
-                        catch_response=True
+                        catch_response=True,
+                        name="/api/jiayouka/v1/list"
                 )as response:
                     if re.search(category, response.text) is None:
                         response.failure("未回传{}" .format(category))
@@ -78,7 +81,7 @@
                 with self.client.get(
                     "/api/jiayouka/v1/{}/cards/{}?".format(r, data['userId']),
                         catch_response=True,
-                        name="/api/jiayouka/v1/1-2/cards/userId"
+                        name="/jiayouka/v1/:categoryId/cards/:customerUserId"
                 )as response:
                     if len(response.json()["data"]) > 0:
                         cardId = response.json()["data"][0]['cardId']
@@ -89,7 +92,7 @@
                 with self.client.get(
                     "/api/jiayouka/v1/{}/payments?".format(r),
                         catch_response=True,
-                        name="/api/jiayouka/v1/1-2/payments?"
+                        name="/jiayouka/v1/:categoryId/payments"
                 )as response:
                     if response.json()['code'] != 0 or len(response.json()['data']) < 1:
                         response.failure("无可用套餐:{}".format(response.json()))
@@ -108,7 +111,8 @@
                             "couponId": "",
                             "activityId": ""
                         },
-                        catch_response=True
+                        catch_response=True,
+                        name="/jiayouka/v1/order"
                 )as response:
                     text = response.text
                     if re.search('"id":"(.*)","name"', text) is not None:
@@ -116,7 +120,7 @@
                         # 收银台获取lite数据
                         with self.client.get("/api/order/v1/lite/{0}?id={0}&subId=&orderType=jiayouka".format(id),
                                              catch_response=True,
-                                             name='/api/order/v1/lite/id'
+                                             name='/order/v1/lite/:id?id=:id&subId=&orderType=jiayouka'
                                              ) as response:
                             if response.json()['code'] != 0:
                                 response.failure("订单详情{}，response:{}".format(id, response.json()))
@@ -124,7 +128,7 @@
                         # 支付成功后获取订单详情
                         with self.client.get("/api/order/v1/jiayouka/{}/info?".format(id),
                                              catch_response=True,
-                                             name='/api/order/v1/jiayouka/id/info?'
+                                             name='/order/v1/jiayouka/:id/info?'
                                              ) as response:
                             # TODO 加了支付后可以考虑加个判断是否回传的status已经不是已下单or待支付
                             if response.json()['code'] != 0:
@@ -143,7 +147,7 @@
             with self.client.get(
                 "/api/order/v1/{}/orders?orderType=coffee&pageSize=10&pageIndex=1".format(data['userId']),
                     catch_response=True,
-                    name='/api/order/v1/userId/orders'
+                    name='/order/v1/:userId/orders?orderType=coffee&pageSize=10&pageIndex=1'
             )as response:
                 if response.json()['code'] != 0:
                     response.failure(response.json())
