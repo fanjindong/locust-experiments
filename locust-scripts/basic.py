@@ -16,17 +16,22 @@
                 exit(0)
 
             try:
-                with self.client.get('/sm/order/fetch/{}'.format(data['orderId']),
-                                     catch_response=True,
-                                     name='/sm/order/fetch/:orderId',
-                                     )as response:
-                    if response.json()['code'] != 0:
-                        response.failure(response.json())
+                response = None
+                response = self.client.get('/sm/order/fetch/{}'.format(data['orderId']),
+                                           name='/sm/order/fetch/:orderId')
+                resp_json = response.json()
 
-                    self.locust.order_data_queue.put_nowait(data)
+                if resp_json['code'] != 0:
+                    response.failure(resp_json)
+
+                self.locust.order_data_queue.put_nowait(data)
 
             except:
-                response.failure("errMessage:{}, response:{}".format(traceback.format_exc(), response.text))
+                response.failure("errMessage:{}, response.statusCode:{} ,response:{}".format(
+                    traceback.format_exc(),
+                    response.status_code,
+                    response.text if response else None
+                ))
 
         @task(1)
         def fetchOrderList(self):
@@ -37,19 +42,24 @@
                 exit(0)
 
             try:
-                with self.client.post('/sm/order/fetch_lite_list',
-                                      json={'userId': data['userId'], 'appCode': 'blm'},
-                                      catch_response=True) as response:
-                    if response.json()['code'] != 0:
-                        response.failure(response.json())
+                response = None
+                response = self.client.post('/sm/order/fetch_lite_list', json={'userId': data['userId'], 'appCode': 'blm'})
+                resp_json = response.json()
 
-                    for item in response.json()['data']:
-                        self.locust.order_data_queue.put_nowait({"orderId": item['id']})
+                if resp_json['code'] != 0:
+                    response.failure(resp_json)
+
+                for item in resp_json['data']:
+                    self.locust.order_data_queue.put_nowait({"orderId": item['id']})
 
                 self.locust.user_data_queue.put_nowait(data)
 
             except:
-                response.failure("errMessage:{}, response:{}".format(traceback.format_exc(), response.text))
+                response.failure("errMessage:{}, response.statusCode:{} ,response:{}".format(
+                    traceback.format_exc(),
+                    response.status_code,
+                    response.text if response else None
+                ))
 
     class WebsiteUser(HttpLocust):
         task_set = WebsiteTasks
