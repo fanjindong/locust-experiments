@@ -83,7 +83,7 @@ data:
                 # 获取用户加油卡列表
                 with self.client.get(
                     "/api/jiayouka/v1/{}/cards/{}?".format(r, data['userId']),
-                        catch_response=True
+                        catch_response=True,
                         name="/api/jiayouka/v1/1-2/cards/userId"
                 )as response:
                     if len(response.json()["data"]) > 0:
