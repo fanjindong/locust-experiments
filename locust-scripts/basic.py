@@ -162,8 +162,8 @@
             }
             user_data_queue.put_nowait(data)
 
-        min_wait = 1000
-        max_wait = 3000
+        min_wait = 10
+        max_wait = 300
 
         # stop_timeout = None
         """Number of seconds after which the Locust will die. If None it won't timeout."""
