@@ -29,8 +29,7 @@
             except:
                 response.failure("errMessage:{}, response.statusCode:{} ,response:{}".format(
                     traceback.format_exc(),
-                    response.status_code,
-                    response.text if response else None
+                    response.status_code
                 ))
 
         @task(1)
@@ -59,7 +58,7 @@
                 response.failure("errMessage:{}, response.statusCode:{} ,response:{}".format(
                     traceback.format_exc(),
                     response.status_code,
-                    response.text if response else None
+                    # response.text if response else None
                 ))
 
     class WebsiteUser(HttpLocust):
