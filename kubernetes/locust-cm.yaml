@@ -3,4 +3,4 @@ kind: ConfigMap
 metadata:
   name: locust-cm
 data:
-  ATTACKED_HOST: https://stg-blm.otosaas.com
+  ATTACKED_HOST: https://192.168.2.6:8010
